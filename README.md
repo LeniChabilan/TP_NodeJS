@@ -54,7 +54,13 @@ pnpm run apps:client:dev
 ## Lancer la doc swagger
 
 ```bash
-pnpm run apps:swagger:start
+pnpm run docs:swagger:start
+```
+
+## Lancer le serveur 
+
+```bash
+pnpm run apps:server:start:dev
 ```
 
 Le serveur Swagger sera accessible à l'adresse `http://localhost:3001/api-docs`.
