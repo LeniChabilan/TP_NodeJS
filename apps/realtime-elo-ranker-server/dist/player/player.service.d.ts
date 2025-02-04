@@ -4,6 +4,7 @@ export interface Player {
 }
 export declare class PlayerService {
     private players;
+    playerUpdates: any;
     addPlayer(id: string, rank?: number): {
         id: string;
         rank: number;

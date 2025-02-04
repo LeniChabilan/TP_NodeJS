@@ -8,6 +8,7 @@ export interface Player {
 @Injectable()
 export class PlayerService {
     private players: Player[] = [];
+  playerUpdates: any;
 
     addPlayer(id: string, rank: number = 1000) {
         const existingPlayer = this.players.find((p) => p.id === id);

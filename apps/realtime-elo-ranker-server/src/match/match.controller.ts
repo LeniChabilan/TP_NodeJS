@@ -1,16 +1,23 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { MatchService } from './match.service';
+import { Controller, Post, Body, HttpStatus, Res } from '@nestjs/common';
+import { MatchService,MatchResult } from './match.service';
+import { Response } from 'express';
+
 
 @Controller('api/match')
 export class MatchController {
   constructor(private readonly matchService: MatchService) {}
 
   @Post()
-  recordMatch(@Body() matchData: { winnerId: string; loserId: string }) {
-    const result = this.matchService.recordMatchResult(matchData.winnerId, matchData.loserId);
-    if (result) {
-      return { message: 'Match recorded', data: result };
+  createMatch(@Body() match: MatchResult, @Res() res: Response) {
+    try {
+      console.log(match);
+      const result = this.matchService.processMatch(match);
+      return res.status(HttpStatus.OK).json(result);
+    } catch {
+      return res.status(HttpStatus.UNPROCESSABLE_ENTITY).json({
+        code: 422,
+        message: "Un des joueurs n'existe pas",
+      });
     }
-    return { message: 'Players not found' };
   }
 }

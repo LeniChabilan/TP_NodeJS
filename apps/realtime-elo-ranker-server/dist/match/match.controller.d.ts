@@ -1,18 +1,7 @@
-import { MatchService } from './match.service';
+import { MatchService, MatchResult } from './match.service';
+import { Response } from 'express';
 export declare class MatchController {
     private readonly matchService;
     constructor(matchService: MatchService);
-    recordMatch(matchData: {
-        winnerId: string;
-        loserId: string;
-    }): {
-        message: string;
-        data: {
-            winner: import("../player/player.service").Player;
-            loser: import("../player/player.service").Player;
-        };
-    } | {
-        message: string;
-        data?: undefined;
-    };
+    createMatch(match: MatchResult, res: Response): Response<any, Record<string, any>>;
 }

@@ -16,6 +16,7 @@ const rxjs_1 = require("rxjs");
 let RankingService = class RankingService {
     constructor(playerService) {
         this.playerService = playerService;
+        this.K = 32;
         this.rankingUpdates = new rxjs_1.Subject();
     }
     getRanking() {
@@ -24,8 +25,24 @@ let RankingService = class RankingService {
     getRankingUpdates() {
         return this.rankingUpdates.asObservable();
     }
-    updateRanking() {
-        this.rankingUpdates.next(this.getRanking());
+    calculateExpectedScore(playerRank, opponentRank) {
+        return 1 / (1 + Math.pow(10, (opponentRank - playerRank) / 400));
+    }
+    calculateNewRating(oldRating, expectedScore, actualScore) {
+        return Math.round(oldRating + this.K * (actualScore - expectedScore));
+    }
+    updateRanking(match) {
+        const winner = this.playerService.findPlayer(match.winner);
+        const loser = this.playerService.findPlayer(match.loser);
+        if (!winner || !loser)
+            throw new Error("Un des joueurs n'existe pas");
+        const expectedWinner = this.calculateExpectedScore(winner.rank, loser.rank);
+        const expectedLoser = 1 - expectedWinner;
+        const actualWinner = match.draw ? 0.5 : 1;
+        const actualLoser = match.draw ? 0.5 : 0;
+        winner.rank = this.calculateNewRating(winner.rank, expectedWinner, actualWinner);
+        loser.rank = this.calculateNewRating(loser.rank, expectedLoser, actualLoser);
+        return { winner, loser };
     }
 };
 exports.RankingService = RankingService;

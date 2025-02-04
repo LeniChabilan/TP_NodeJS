@@ -19,22 +19,29 @@ let MatchController = class MatchController {
     constructor(matchService) {
         this.matchService = matchService;
     }
-    recordMatch(matchData) {
-        const result = this.matchService.recordMatchResult(matchData.winnerId, matchData.loserId);
-        if (result) {
-            return { message: 'Match recorded', data: result };
+    createMatch(match, res) {
+        try {
+            console.log(match);
+            const result = this.matchService.processMatch(match);
+            return res.status(common_1.HttpStatus.OK).json(result);
         }
-        return { message: 'Players not found' };
+        catch {
+            return res.status(common_1.HttpStatus.UNPROCESSABLE_ENTITY).json({
+                code: 422,
+                message: "Un des joueurs n'existe pas",
+            });
+        }
     }
 };
 exports.MatchController = MatchController;
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
-], MatchController.prototype, "recordMatch", null);
+], MatchController.prototype, "createMatch", null);
 exports.MatchController = MatchController = __decorate([
     (0, common_1.Controller)('api/match'),
     __metadata("design:paramtypes", [match_service_1.MatchService])

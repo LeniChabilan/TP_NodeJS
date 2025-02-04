@@ -18,16 +18,8 @@ let MatchService = class MatchService {
         this.playerService = playerService;
         this.rankingService = rankingService;
     }
-    recordMatchResult(winnerId, loserId) {
-        const winner = this.playerService.findPlayer(winnerId);
-        const loser = this.playerService.findPlayer(loserId);
-        if (winner && loser) {
-            winner.rank += 10;
-            loser.rank -= 10;
-            this.rankingService.updateRanking();
-            return { winner, loser };
-        }
-        return null;
+    processMatch(match) {
+        return this.rankingService.updateRanking(match);
     }
 };
 exports.MatchService = MatchService;
