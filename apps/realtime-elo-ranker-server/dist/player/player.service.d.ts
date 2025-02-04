@@ -4,7 +4,7 @@ export interface Player {
 }
 export declare class PlayerService {
     private players;
-    addPlayer(id: string, rank: number): {
+    addPlayer(id: string, rank?: number): {
         id: string;
         rank: number;
     } | null;

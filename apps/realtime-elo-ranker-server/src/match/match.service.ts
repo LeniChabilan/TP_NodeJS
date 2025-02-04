@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PlayerService } from '../player/player.service';
 import { RankingService } from '../ranking/ranking.service';
 
+export interface MatchResult {
+  winner: { id: string; rank: number };
+  loser: { id: string; rank: number };
+}
+
 @Injectable()
 export class MatchService {
   constructor(

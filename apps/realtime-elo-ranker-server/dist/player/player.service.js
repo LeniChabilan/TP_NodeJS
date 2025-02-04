@@ -12,7 +12,7 @@ let PlayerService = class PlayerService {
     constructor() {
         this.players = [];
     }
-    addPlayer(id, rank) {
+    addPlayer(id, rank = 1000) {
         const existingPlayer = this.players.find((p) => p.id === id);
         if (!existingPlayer) {
             const player = { id, rank };
