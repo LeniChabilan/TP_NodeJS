@@ -6,19 +6,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PlayerModule = void 0;
+exports.EventEmitterModule = void 0;
 const common_1 = require("@nestjs/common");
-const player_service_1 = require("./player.service");
-const player_controller_1 = require("./player.controller");
 const event_emitter_service_1 = require("../event-emitter/event-emitter-service");
-let PlayerModule = class PlayerModule {
+let EventEmitterModule = class EventEmitterModule {
 };
-exports.PlayerModule = PlayerModule;
-exports.PlayerModule = PlayerModule = __decorate([
+exports.EventEmitterModule = EventEmitterModule;
+exports.EventEmitterModule = EventEmitterModule = __decorate([
     (0, common_1.Module)({
-        providers: [player_service_1.PlayerService, event_emitter_service_1.EventEmitterService],
-        controllers: [player_controller_1.PlayerController],
-        exports: [player_service_1.PlayerService],
+        providers: [event_emitter_service_1.EventEmitterService],
+        exports: [event_emitter_service_1.EventEmitterService],
     })
-], PlayerModule);
-//# sourceMappingURL=player.module.js.map
+], EventEmitterModule);
+//# sourceMappingURL=event-emitter.module.js.map

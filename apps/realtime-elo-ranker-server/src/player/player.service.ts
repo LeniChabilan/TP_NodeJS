@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitterService } from '../event-emitter/event-emitter-service';
 
 export interface Player {
     id: string;
@@ -7,6 +8,7 @@ export interface Player {
 
 @Injectable()
 export class PlayerService {
+    constructor(private readonly eventEmitter: EventEmitterService) {}
     private players: Player[] = [];
   playerUpdates: any;
 
@@ -15,6 +17,7 @@ export class PlayerService {
         if (!existingPlayer) {
             const player = { id, rank };
             this.players.push(player);
+            this.eventEmitter.getEmitter().emit('ranking.update', player);
             return player;
         }
         return null;
