@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PlayerService, Player } from '../player/player.service';
 import { MatchResult } from '../match/match.service';
 import { Subject } from 'rxjs';
+import { EventEmitterService } from '../event-emitter/event-emitter-service';
 
 @Injectable()
 export class RankingService {
   private readonly K = 32;
 
 
-  constructor(private readonly playerService: PlayerService) {}
+  constructor(private readonly playerService: PlayerService,private readonly eventEmitter: EventEmitterService) {}
   private rankingUpdates = new Subject<Player[]>();
 
 
@@ -57,6 +58,11 @@ export class RankingService {
       expectedLoser,
       actualLoser,
     );
+
+    this.eventEmitter.getEmitter().emit('ranking.update', winner);
+    this.eventEmitter.getEmitter().emit('ranking.update', loser);
+
+
 
     return { winner, loser };
   }

@@ -13,15 +13,24 @@ exports.RankingController = void 0;
 const common_1 = require("@nestjs/common");
 const ranking_service_1 = require("./ranking.service");
 const rxjs_1 = require("rxjs");
+const event_emitter_service_1 = require("../event-emitter/event-emitter-service");
 let RankingController = class RankingController {
-    constructor(rankingService) {
+    constructor(rankingService, eventEmitterService) {
         this.rankingService = rankingService;
+        this.eventEmitterService = eventEmitterService;
     }
     getRanking() {
         return this.rankingService.getRanking();
     }
-    subscribeToRankingUpdates() {
-        return this.rankingService.getRankingUpdates().pipe((0, rxjs_1.map)((ranking) => ({ data: ranking })));
+    getRankingEvents() {
+        return (0, rxjs_1.fromEvent)(this.eventEmitterService.getEmitter(), 'ranking.update').pipe((0, rxjs_1.map)((player) => {
+            return {
+                data: {
+                    type: 'RankingUpdate',
+                    player: player,
+                }
+            };
+        }));
     }
 };
 exports.RankingController = RankingController;
@@ -32,14 +41,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], RankingController.prototype, "getRanking", null);
 __decorate([
-    (0, common_1.Get)('events'),
-    (0, common_1.Sse)(),
+    (0, common_1.Sse)('events'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", rxjs_1.Observable)
-], RankingController.prototype, "subscribeToRankingUpdates", null);
+], RankingController.prototype, "getRankingEvents", null);
 exports.RankingController = RankingController = __decorate([
     (0, common_1.Controller)('api/ranking'),
-    __metadata("design:paramtypes", [ranking_service_1.RankingService])
+    __metadata("design:paramtypes", [ranking_service_1.RankingService,
+        event_emitter_service_1.EventEmitterService])
 ], RankingController);
 //# sourceMappingURL=ranking.controller.js.map

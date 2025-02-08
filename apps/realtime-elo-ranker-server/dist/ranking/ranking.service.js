@@ -13,9 +13,11 @@ exports.RankingService = void 0;
 const common_1 = require("@nestjs/common");
 const player_service_1 = require("../player/player.service");
 const rxjs_1 = require("rxjs");
+const event_emitter_service_1 = require("../event-emitter/event-emitter-service");
 let RankingService = class RankingService {
-    constructor(playerService) {
+    constructor(playerService, eventEmitter) {
         this.playerService = playerService;
+        this.eventEmitter = eventEmitter;
         this.K = 32;
         this.rankingUpdates = new rxjs_1.Subject();
     }
@@ -42,12 +44,14 @@ let RankingService = class RankingService {
         const actualLoser = match.draw ? 0.5 : 0;
         winner.rank = this.calculateNewRating(winner.rank, expectedWinner, actualWinner);
         loser.rank = this.calculateNewRating(loser.rank, expectedLoser, actualLoser);
+        this.eventEmitter.getEmitter().emit('ranking.update', winner);
+        this.eventEmitter.getEmitter().emit('ranking.update', loser);
         return { winner, loser };
     }
 };
 exports.RankingService = RankingService;
 exports.RankingService = RankingService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [player_service_1.PlayerService])
+    __metadata("design:paramtypes", [player_service_1.PlayerService, event_emitter_service_1.EventEmitterService])
 ], RankingService);
 //# sourceMappingURL=ranking.service.js.map
