@@ -1,35 +1,10 @@
 # Realtime Elo Ranker
 
+Auteur: Leni Chabilan Copyright: © 2024 Version: 1.0 Email de contact: leni.chabilan@etu.univ-orleans.fr
+
+
 Realtime Elo Ranker est une application web permettant de simuler des matchs entre des joueurs et de calculer et afficher leur classement Elo en temps réel.
 
-## Conteneurs Métiers
-
-`apps/realtime-elo-ranker-server` : Serveur de l'application (à implémenter)
-  - Sera basé sur NestJS
-  - Gèrera le calcul des résultat de matchs et le classement des joueurs
-  - Exposera l'API Web pour fournir les fonctionnalités métiers :
-    - Calcul des matchs (cf: [Classement Elo](#classement-elo))
-    - Récupération du classement
-    - Mise à jour du classement en temps réel via des évènements
-    - Création de nouveaux joueurs
-
-`apps/realtime-elo-ranker-simulator` : Simulateur de matchs (à implémenter - bonus)
-  - Simulera des matchs entre des joueurs
-  - Enverra les résultats des matchs au serveur
-  - Vous pouvez utiliser un simple script NodeJS pour simuler les matchs
-
-`apps/realtime-elo-ranker-client` : Client de l'application
-  - Basé sur NextJS
-  - Sert une IHM pour :
-    - Saisir les résultats des matchs
-      - ID du joueur 1
-      - ID du joueur 2
-      - Résultat du match
-    - Afficher le classement des joueurs
-    - Créer de nouveaux joueurs
-
-`libs/ui` : Librairie de composants graphiques
-  - Contiendra les composants graphiques réutilisables pour le client
 
 ## Lancer l'application cliente
 
