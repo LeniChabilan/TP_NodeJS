@@ -1,5 +1,8 @@
 # Realtime Elo Ranker
 
+Auteur: Leni Chabilan Copyright: © 2024 Version: 1.0 Email de contact: leni.chabilan@etu.univ-orleans.fr
+
+
 Realtime Elo Ranker est une application web permettant de simuler des matchs entre des joueurs et de calculer et afficher leur classement Elo en temps réel.
 
 # Installation
