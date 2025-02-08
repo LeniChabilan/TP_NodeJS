@@ -2,48 +2,23 @@
 
 Realtime Elo Ranker est une application web permettant de simuler des matchs entre des joueurs et de calculer et afficher leur classement Elo en temps réel.
 
-## Conteneurs Métiers
+# Installation
 
-`apps/realtime-elo-ranker-server` : Serveur de l'application (à implémenter)
-  - Sera basé sur NestJS
-  - Gèrera le calcul des résultat de matchs et le classement des joueurs
-  - Exposera l'API Web pour fournir les fonctionnalités métiers :
-    - Calcul des matchs (cf: [Classement Elo](#classement-elo))
-    - Récupération du classement
-    - Mise à jour du classement en temps réel via des évènements
-    - Création de nouveaux joueurs
+Il est important de lancer le serveur avant de lancer le client. Le lancement s'execute à la racine du projet.
 
-`apps/realtime-elo-ranker-simulator` : Simulateur de matchs (à implémenter - bonus)
-  - Simulera des matchs entre des joueurs
-  - Enverra les résultats des matchs au serveur
-  - Vous pouvez utiliser un simple script NodeJS pour simuler les matchs
-
-`apps/realtime-elo-ranker-client` : Client de l'application
-  - Basé sur NextJS
-  - Sert une IHM pour :
-    - Saisir les résultats des matchs
-      - ID du joueur 1
-      - ID du joueur 2
-      - Résultat du match
-    - Afficher le classement des joueurs
-    - Créer de nouveaux joueurs
-
-`libs/ui` : Librairie de composants graphiques
-  - Contiendra les composants graphiques réutilisables pour le client
-
-## Lancer l'application cliente
-
-*Prérequis :*
-
-Le client repose sur une source CSS exposée par la librairie `libs/ui` (@realtime-elo-ranker/libs/ui). Il est nécessaire de construire la lib pour rendre la source accessible.
-
-Pour ce faire :
+## Installer les dépendances
 
 ```bash
-pnpm run libs:ui:build
+pnpm install
 ```
 
-**Puis**
+## Lancer le serveur 
+
+```bash
+pnpm run apps:server:start:dev
+```
+
+## Lancer l'application cliente
 
 Lancer l'application :
 
@@ -57,17 +32,6 @@ pnpm run apps:client:dev
 pnpm run docs:swagger:start
 ```
 
-## Lancer le serveur 
-
-```bash
-pnpm run apps:server:start:dev
-```
-
-Le serveur Swagger sera accessible à l'adresse `http://localhost:3001/api-docs`.
-
-Le serveur est en hot-reload : les modifications apportées au `swagger.yaml` seront automatiquement prises en compte.
-
-**Note :** Si le live-reload ne fonctionne pas, pensez à forwarder le port `35729` dans l'IDE.
 
 ## Lancer le mock de l'API
 
@@ -75,7 +39,232 @@ Le serveur est en hot-reload : les modifications apportées au `swagger.yaml` se
 pnpm run apps:api-mock:start
 ```
 
-Le mock de l'API sera accessible à l'adresse `http://localhost:8080`. Il ne doit pas être lancé en même temps que le serveur de l'application.
+# Pour les test : 
+
+## Test unitaire et d'intégration
+
+Il m'a fallu un peu de temps pour comprendre comment lancer les tests unitaires et d'intégration. Voici comment j'ai procédé :
+
+j'ai installé @nestjs/testing avec jest et ts-jest pour les tests unitaires et d'intégration.
+
+```bash
+pnpm add -D jest @nestjs/testing ts-jest @types/jest
+```
+Pour essayer de lancer les tests unitaires se deplacer dans le serveur.
+
+```bash
+cd apps/realtime-elo-ranker-server
+```
+
+### Voir le coverage général des test 
+```bash
+pnpm test --coverage
+```
+
+### Voir l'execution des test pour un fichier en particulier
+```bash
+pnpm jest player.controller.spec.ts
+```
+
+Pour ma part j'ai voulu mettre en place quelques test nottament pour les parties du serveur qui sont les plus importantes. J'ai donc testé les controllers et les services pour match et player.
+
+ce qui me donne ce resultat de coverage : 
+
+![image](./img/coverage.png)
+
+## Test E2E
+
+Pour les tests E2E, j'ai utilisé supertest pour tester les routes de l'API. J'ai créé un fichier de test e2e pour player
+
+```bash
+import { Test, TestingModule } from '@nestjs/testing';
+import request from 'supertest';
+import { INestApplication } from '@nestjs/common';
+import { PlayerModule } from '../src/player/player.module';
+import { PlayerService } from '../src/player/player.service';
+
+describe('PlayerController (e2e)', () => {
+  let app: INestApplication;
+  let playerService = { addPlayer: jest.fn(), getPlayers: jest.fn() };
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [PlayerModule],
+    })
+      .overrideProvider(PlayerService)
+      .useValue(playerService)
+      .compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  it('/api/player (POST) should add a player', () => {
+    const playerData = { id: '1', rank: 1500 };
+    playerService.addPlayer.mockReturnValue(playerData);
+
+    return request(app.getHttpServer())
+      .post('/api/player')
+      .send(playerData)
+      .expect(201)
+      .expect({
+        message: 'Player created',
+        data: playerData,
+      });
+  });
+
+  it('/api/player (POST) should return a message when player already exists', () => {
+    const playerData = { id: '1', rank: 1500 };
+    playerService.addPlayer.mockReturnValue(null);
+
+    return request(app.getHttpServer())
+      .post('/api/player')
+      .send(playerData)
+      .expect(200)
+      .expect({
+        message: 'Player already exists',
+      });
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+});
+```
+
+Cela représente un test e2e pour le controller player. Je n'ai pas passé plus de temps sur les tests car j'estime avoir compris comment cela fonctionnait et que j'ai pu mettre en place quelques tests pour les parties les plus importantes de l'application et que la suite serait juste des répétitions.
+
+
+
+# Oragnisation du projet : 
+
+## Serveur
+
+Nous avons du crée un serveur pour remplacer l'API Mock , pour cela j'aieffectuer cette commande :
+
+```bash
+pnpm nest new apps/realtime-elo-ranker-server --skip-git -l TS --strict --package-manager pnpm
+```
+
+à partir de là j'ai pu commencer à implémenter les différentes parties du serveur.
+
+Pour les controllers,modules,services j'ai utilisé les commandes suivante pour les générer :
+
+```bash
+pnpm nest generate service player
+pnpm nest generate service ranking
+pnpm nest generate service match
+
+pnpm nest generate controller player
+pnpm nest generate controller ranking
+pnpm nest generate controller match
+
+
+pnpm nest generate module player
+pnpm nest generate module ranking
+pnpm nest generate module match
+```
+
+à partir de là j'ai pu commencer à implémenter les différentes parties du serveur. J'ai simplement eu a utiliser la logique qui nous etait donnée dans le swagger de l'API pour les différentes routes.
+
+# Event Emitter
+
+L'Event Emitter est utilisé pour publier des événements en temps réel, notamment pour informer les clients connectés des mises à jour du classement des joueurs. pour cela j'ai utilisé le module `eventemitter2` pour gérer les événements.
+
+## Mise en place
+
+### Module Event Emitter
+
+j'ai créé un module `EventEmitterModule` pour encapsuler la logique de l'Event Emitter. Ce module fournit le service `EventEmitterService` qui sera utilisé pour émettre des événements.
+
+```typescript
+import { Module } from '@nestjs/common';
+import { EventEmitterService } from '../event-emitter/event-emitter-service';
+
+@Module({
+  providers: [EventEmitterService],
+  exports: [EventEmitterService],
+})
+export class EventEmitterModule {}
+```
+
+### Service Event Emitter
+
+Le service EventEmitterService encapsule l'instance de `EventEmitter2` et fournit une méthode pour émettre des événements de mise à jour du classement.
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from 'eventemitter2';
+
+@Injectable()
+export class EventEmitterService {
+  constructor(private readonly eventEmitter: EventEmitter2) {}
+
+  emitRankingUpdate(player: any) {
+    this.eventEmitter.emit('ranking.update', player);
+  }
+
+  getEmitter(): EventEmitter2 {
+    return this.eventEmitter;
+  }
+}
+```
+
+
+### Utilisation dans l'application
+Pour utiliser l'Event Emitter dans l'application, nous avons injecté le `EventEmitterService` dans les services et contrôleurs concernés. Par exemple, après la mise à jour du classement d'un joueur, nous émettons un événement de mise à jour lors de l'ajout d'un joueur.
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { EventEmitterService } from '../event-emitter/event-emitter-service';
+
+export interface Player {
+    id: string;
+    rank: number;
+}
+
+@Injectable()
+export class PlayerService {
+    constructor(private readonly eventEmitter: EventEmitterService) {}
+    private players: Player[] = [];
+  playerUpdates: any;
+
+    addPlayer(id: string, rank: number = 1000) {
+        const existingPlayer = this.players.find((p) => p.id === id);
+        if (!existingPlayer) {
+            const player = { id, rank };
+            this.players.push(player);
+            this.eventEmitter.getEmitter().emit('ranking.update', player); // EVENT EMITTER
+            return player;
+        }
+        return null;
+    }
+```
+
+Cette approche permet de notifier les clients en temps réel des changements de classement, améliorant ainsi l'expérience utilisateur.
+
+
+# Stocker des données d'une requête à l'autre sans utiliser de base de données
+
+Actuellement le serveur utilise du cache pour stocker les données des joueurs et des matchs. Cela permet de stocker les données en mémoire entre les requêtes sans avoir besoin d'une base de données. 
+
+Cela veut aussi dire que les données sont perdues à chaque redémarrage du serveur.
+
+Je n'ai malheuresement pas pu mettre en place une base de données pour stocker les données des joueurs et des matchs.
+Ayant essayé de mettre en place une base de données avec TypeORM, j'ai rencontré des problèmes de configuration et de compatibilité avec ma machine , j'ai demandé de l'aide de nombreuses fois à mes collègue à M.Arsouze ou bien même à M.Faurie mais nous n'avons pas reussi à résoudre le problème. 
+
+C'est pour cela que j'ai décidé de continuer avec le cache pour stocker les données des joueurs et des matchs.
+
+Même si l'implementation de la base de donnée semble très accessible avec NestJS.
+
+Avec la creation d'un player.entity.ts
+
+comme on peut le voir dans mon arborescence de fichier j'ai bien un dossier entity qui contient un fichier player.entity.ts mais je n'ai pas pu aller plus loins car j'etais bloqué dans le AppModule pour ajouter TypeOrmforRoot.
+
+# LENI CHABILAN
+
+
+
 
 # Architecture
 
@@ -260,4 +449,3 @@ Remarques :
 - La formule de calcul de la probabilité de victoire est basée sur la formule de la fonction logistique, qui est couramment utilisée pour modéliser des phénomènes binaires (victoire/défaite, succès/échec, etc.).
 - La constante `400` est un paramètre empirique qui détermine la sensibilité de la probabilité de victoire à la différence de classement. Plus la constante est grande, plus la probabilité de victoire change rapidement avec la différence de classement.
 - Par sa conception, le système Elo est mathématiquement un système transactionnel, c'est-à-dire que la somme des classements des joueurs reste constante après chaque match. Cela signifie que le classement gagné par un joueur est équivalent au classement perdu par son adversaire.
-
